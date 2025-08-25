@@ -10,8 +10,7 @@ Demo project for automated testing with **Robot Framework**, **Selenium**, **Doc
 
 ---
 
-## ▶️ Run Locally with Docker / Ejecución Local con Docker
-**English**
+## ▶️ Run Locally with Docker
 1. Execute:  
    ```bash
    docker compose build --no-cache
@@ -19,7 +18,6 @@ Demo project for automated testing with **Robot Framework**, **Selenium**, **Doc
 
 
 
-👤 Autora
-
+👤 Autor
 Jessica Esquivel Betancourt
 QA Automation Engineer | DevOps QA | Selenium | Robot Framework | Azure Pipelines
