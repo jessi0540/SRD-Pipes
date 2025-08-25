@@ -1,0 +1,32 @@
+services:
+  selenium:
+    image: selenium/standalone-chrome:latest
+    shm_size: "2gb"                 # evita crashes por /dev/shm pequeño
+    environment:
+      - TZ=America/Mexico_City
+      - SE_NODE_MAX_SESSIONS=1
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+    ports:
+      - "4444:4444"                 # UI opcional: http://localhost:4444
+    # 👇 Healthcheck para saber cuándo el Grid está listo
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444/wd/hub/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rf:
+    build: .
+    image: rf-selenium-runner:latest
+    # 👇 Espera a que selenium pase el healthcheck
+    depends_on:
+      selenium:
+        condition: service_healthy
+    environment:
+      - TZ=America/Mexico_City
+      - SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub
+      - BROWSER=chrome
+      - HEADLESS=true
+    volumes:
+      - ./tests:/tests:rw
+      - ./output:/output:rw

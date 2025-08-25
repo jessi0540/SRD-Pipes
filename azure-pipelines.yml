@@ -1,0 +1,51 @@
+trigger: none   # cámbialo a 'master' o 'main' si quieres que se ejecute en cada push
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  BROWSER: 'chrome'
+  HEADLESS: 'true'
+  SELENIUM_REMOTE_URL: 'http://selenium:4444/wd/hub'
+
+stages:
+- stage: Tests
+  jobs:
+  - job: RobotInContainers
+    displayName: Run Robot with Selenium service
+    container: python:3.11-slim  # aquí corren tus pasos
+
+    services:
+      selenium:                   # contenedor Selenium+Chrome efímero
+        image: selenium/standalone-chrome:latest
+        env:
+          SE_NODE_MAX_SESSIONS: '1'
+          SE_NODE_OVERRIDE_MAX_SESSIONS: 'true'
+        options: >-
+          --shm-size=2g
+
+    steps:
+    - script: |
+        python -m pip install -U pip
+        pip install robotframework robotframework-seleniumlibrary
+        mkdir -p results
+        robot -d results --xunit results/xunit.xml tests
+      displayName: Run Robot Tests
+      env:
+        BROWSER: $(BROWSER)
+        HEADLESS: $(HEADLESS)
+        SELENIUM_REMOTE_URL: $(SELENIUM_REMOTE_URL)
+
+    - task: PublishTestResults@2
+      displayName: Publish JUnit
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: 'results/xunit.xml'
+        failTaskOnFailedTests: true
+        testRunTitle: 'Robot + Selenium in Azure'
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Robot Reports
+      inputs:
+        PathtoPublish: 'results'
+        ArtifactName: 'robot-results'
